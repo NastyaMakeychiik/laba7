@@ -1,28 +1,19 @@
 package screens
 
-import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.tooling.preview.Preview
 import com.topic2.android.notes.domain.model.NoteModel
-import com.topic2.android.notes.routing.Screen
-import kotlinx.coroutines.launch
-import ui.components.AppDrawer
+import com.topic2.android.notes.viewmodel.MainViewModel
 import ui.components.Note
+import ui.components.TopAppBar
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-
 fun NotesScreen(
     viewModel: MainViewModel
 ){
@@ -30,65 +21,17 @@ fun NotesScreen(
         .notesNotInTrash
         .observeAsState(listOf())
 
-    val scaffoldState:ScaffoldState = rememberScaffoldState()
-
-    val coroutineScope = rememberCoroutineScope()
-
-    Scaffold(topBar = {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Notes",
-                    color = MaterialTheme.colors.onPrimary
-                )
-            },
-            navigationIcon = {
-                IconButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            scaffoldState.drawerState.open()
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.List,
-                        contentDescription = "Drawer Button"
-                    )
-                }
-            }
+    Column {
+        TopAppBar(title = "Заметки" ,
+            icon = Icons.Filled.List,
+            onIconClick ={}
         )
-    },
-        scaffoldState= scaffoldState,
-        drawerContent = {
-            AppDrawer(currentScreen = Screen.Notes, closeDrawerAction = {
-                coroutineScope.launch {
-                    scaffoldState.drawerState.close()
-                }
-            }
-            )
-        },
-        content = {
-            if (notes.isNotEmpty()){
-                NotesList(notes = notes, onNoteCheckedChange = {
-                    viewModel.onNoteCheckedChange(it)
-                }, onNoteClick = {viewModel.onNoteClick(it) }
-                )
-            }
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {viewModel.onCreateNewNoteClick()},
-                contentColor = MaterialTheme.colors.background,
-                content = {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Add Note Button"
-                    )
-                })
+        NotesList(notes = notes,
+            onNoteCheckedChange = {viewModel.onNoteCheckedChange(it)},
+            onNoteClick = {viewModel.onNoteClick(it)}
+        )
 
-        }
-    )
+    }
 }
 @Composable
 private fun NotesList(
@@ -118,23 +61,4 @@ private fun NoteListPreview(){
     ),
         onNoteCheckedChange = {},
         onNoteClick = {})
-}
-@Composable
-fun rememberScaffoldState(
-    drawerState: DrawerState= rememberDrawerState(DrawerValue.Closed),
-    snackbarHostState: SnackbarHostState = remember{ SnackbarHostState()}
-): ScaffoldState = remember{
-    ScaffoldState(drawerState, snackbarHostState)
-}
-
-@Composable
-fun rememberDrawerState(
-    initialValue: DrawerValue,
-    confirmStateChange: (DrawerValue)-> Boolean = {true}
-): DrawerState{
-    return rememberSaveable(saver = DrawerState.Saver(confirmStateChange)){
-        DrawerState(initialValue,confirmStateChange)
-    }
-
-
 }
